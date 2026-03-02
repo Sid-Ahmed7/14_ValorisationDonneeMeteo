@@ -15,7 +15,14 @@ export function GetMockupData(): ChartDataSerie {
             Math.sin(((i - 100) / 18) * 3.141592654) * 4 +
             Math.random() * 3 -
             1.5;
-
+        RetArray.push({
+            date: CurDate,
+            ITN: CurTemp,
+            Delta: Dt,
+            StdDev: Std,
+            Min: CurTemp - Std - Std * Math.random(),
+            Max: CurTemp + Std + Std * Math.random(),
+        });
         CurDate = new Date(CurDate.getTime() + 24 * 3600 * 1000);
     }
     return RetArray;
