@@ -1,7 +1,7 @@
 export function GetMockupData(): ChartDataSerie {
     const RetArray: ChartDataSerie = [];
-    let CurTemp = 5;
-    let CurDate = new Date("2025-01-01");
+    let CurTemp = 10;
+    let CurDate = new Date("2025-06-01");
     let Dt = 0;
     for (let i = 0; i < 365; i++) {
         //CurTemp+=Math.random()*5-2.5
