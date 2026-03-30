@@ -33,11 +33,16 @@ jobs:
       - name: Run linter
         run: uv run ruff check .
 
-      - name: Run security scan
-        run: uv run bandit -r . -ll
-
       - name: Build Docker image
         run: docker build -t meteo-app:vtest .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: meteo-app:vtest
+          format: table
+          exit-code: '1'
+          severity: CRITICAL,HIGH
 
       - name: Log in to Docker Hub
         if: github.ref == 'refs/heads/main'
