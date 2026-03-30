@@ -28,7 +28,7 @@ jobs:
         run: uv sync --locked --all-extras
 
       - name: Run tests
-        run: uv run pytest tests/ --junitxml=report.xml
+        run: uv run pytest weather/tests/ --junitxml=report.xml
 
       - name: Run linter
         run: uv run ruff check .
