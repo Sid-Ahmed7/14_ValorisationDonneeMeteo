@@ -107,7 +107,7 @@ jobs:
           with:
             image-ref: meteo-front:vtest
             format: json
-            output: front-report.json
+            output: frontend/front-report.json
             exit-code: '0'
             severity: CRITICAL,HIGH
 
