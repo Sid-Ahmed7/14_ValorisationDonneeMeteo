@@ -35,7 +35,7 @@ services:
     build:
       context: ./backend
     env_file:
-      - ./.env
+      - ./.env.example
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -47,13 +47,27 @@ services:
     build:
       context: ./frontend
     env_file:
-      - ./.env
+      - ./.env.example
+    networks:
+      - app_net
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
     networks:
       - app_net
 
 volumes:
   timescaledb-data:
     driver: local
+  prometheus-data:
+    driver: local
+
 networks:
   app_net:
   bd_net:
