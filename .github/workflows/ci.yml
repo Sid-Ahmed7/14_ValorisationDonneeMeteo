@@ -44,7 +44,6 @@ jobs:
         run: uv run bandit -r . --exclude ./.venv -f json -o bandit.json || true
 
       - name: Upload scan code report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: scan-code-report
@@ -63,7 +62,6 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Trivy report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
@@ -114,10 +112,9 @@ jobs:
             severity: CRITICAL,HIGH
 
         - name: Upload Trivy report
-          if: always()
           uses: actions/upload-artifact@v4
           with:
-            name: trivy-front-report
+            name: front-report
             path: frontend/front-report.json
 
         - name: Log in to Docker Hub
