@@ -61,8 +61,8 @@ jobs:
           output: trivy-report.json
           exit-code: '0'
           severity: CRITICAL,HIGH
-          trivyignores: .trivyignore
-          trivy-config: trivy.yaml
+          trivyignores: backend/.trivyignore
+          trivy-config: backend/trivy.yaml
 
       - name: Trivy report
         if: always()
