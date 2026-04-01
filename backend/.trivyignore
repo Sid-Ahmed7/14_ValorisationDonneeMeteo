@@ -1,0 +1,4 @@
+# VEX - Trivy ignore file
+# Format: CVE-ID [expiry-date] [reason]
+# Example:
+# CVE-2023-XXXX exp:2025-12-31 reason: not exploitable in our context

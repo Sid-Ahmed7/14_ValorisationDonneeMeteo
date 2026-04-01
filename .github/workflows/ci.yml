@@ -30,8 +30,25 @@ jobs:
       - name: Run tests
         run: uv run pytest weather/tests/ --junitxml=report.xml
 
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: backend/report.xml
+
       - name: Run linter
         run: uv run ruff check .
+
+      - name: Run security scan
+        run: uv run bandit -r . -f json -o bandit-report.json || true
+
+      - name: Upload scan code report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-code-report
+          path: backend/bandit-report.json
 
       - name: Build Docker image
         run: docker build -t meteo-app:vtest .
@@ -40,10 +57,19 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: meteo-app:vtest
-          format: table
+          format: json
+          output: trivy-report.json
           exit-code: '0'
           severity: CRITICAL,HIGH
+          trivyignores: .trivyignore
+          trivy-config: trivy.yaml
 
+      - name: Trivy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: backend/trivy-report.json
       - name: Log in to Docker Hub
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
