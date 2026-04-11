@@ -20,7 +20,8 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:1.29.5-alpine3.23-perl
+    build:
+      context: ./nginx
     ports:
       - "80:80"
     volumes:

@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm
+FROM dhi.io/python:3.12-alpine3.22-dev AS build
 
 WORKDIR /app
 
@@ -12,11 +12,16 @@ COPY . .
 RUN uv sync --locked
 
 
+FROM dhi.io/python:3.12-alpine3.22
 
-COPY entrypoint.sh /entrypoint.sh
+WORKDIR /app
 
-RUN chmod +x /entrypoint.sh
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["/entrypoint.sh"]
+COPY --from=build /app /app
+COPY --from=build /bin/uv /bin/uv
+COPY --from=build /bin/uvx /bin/uvx
+
 EXPOSE 8000
-CMD ["uv", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["uv", "run", "sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]

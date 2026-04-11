@@ -13,55 +13,55 @@ jobs:
         working-directory: backend
 
     steps:
-      - name: Checkout code
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: install python
         uses: actions/setup-python@v5
         with:
           python-version: '3.14.3'
 
-      - name: Install uv
+      - name: install uv
         uses: astral-sh/setup-uv@v4
 
-      - name: Install dependencies
+      - name: install dependencies
         run: uv sync --locked --all-extras
 
-      - name: Run tests
+      - name: tests back
         run: uv run pytest weather/tests/ --junitxml=report.xml
 
-      - name: Upload test report
+      - name: upload test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-back
+          name: test-back
           path: backend/report.xml
 
-      - name: Run linter
+      - name: lint
         run: uv run ruff check .
 
-      - name: Run security scan
-        run: uv run bandit -r . --exclude ./.venv -f json -o bandit.json || true
+      - name: test with bandit
+        run: uv run bandit -r . --exclude ./.venv -f json -o bandit.json
 
-      - name: Upload scan code report
+      - name: upload bandit report
         uses: actions/upload-artifact@v4
         with:
           name: scan-code-report
           path: backend/bandit.json
 
-      - name: Build Docker image
-        run: docker build -t meteo-app:vtest .
+      - name: build backend
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/meteo-app:latest .
 
-      - name: Run Trivy
+      - name: trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: meteo-app:vtest
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/meteo-app:latest
           format: json
           output: backend/trivy-report.json
           exit-code: '0'
           severity: CRITICAL,HIGH
 
-      - name: Trivy report
+      - name: upload trivy report
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
@@ -73,11 +73,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push to registry (on main branch only)
+      - name: push backend
         if: github.ref == 'refs/heads/main'
-        run: |
-          docker tag meteo-app:vtest ${{ secrets.DOCKER_USERNAME }}/meteo-app:latest
-            docker push ${{ secrets.DOCKER_USERNAME }}/meteo-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/meteo-app:latest
   frontend:
       runs-on: ubuntu-latest
       defaults:
@@ -85,48 +83,56 @@ jobs:
           working-directory: frontend
 
       steps:
-        - name: Checkout code
+        - name: checkout
           uses: actions/checkout@v4
 
-        - name: Set up Node.js
+        - name: install node
           uses: actions/setup-node@v4
           with:
             node-version: '24'
 
-        - name: Install dependencies
+        - name: install dependencies
           run: npm ci
 
-        - name: Run linter
+        - name: lint
           run: npm run lint
 
-        - name: Build Docker image
-          run: docker build -t meteo-front:vtest .
+        - name: tests front
+          run: npm run test:unit -- --reporter=junit --outputFile=report.xml
 
-        - name: Run Trivy
+        - name: upload test report
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: test-front
+            path: frontend/report.xml
+
+        - name: build frontend
+          run: docker build -t ${{ secrets.DOCKER_USERNAME }}/meteo-front:latest .
+
+        - name: trivy
           uses: aquasecurity/trivy-action@0.35.0
           with:
-            image-ref: meteo-front:vtest
+            image-ref: ${{ secrets.DOCKER_USERNAME }}/meteo-front:latest
             format: json
             output: frontend/front-report.json
             exit-code: '0'
             severity: CRITICAL,HIGH
 
-        - name: Upload Trivy report
+        - name: upload trivy report
           uses: actions/upload-artifact@v4
           with:
             name: front-report
             path: frontend/front-report.json
 
-        - name: Log in to Docker Hub
+        - name: login dockerhub
           if: github.ref == 'refs/heads/main'
           uses: docker/login-action@v3
           with:
             username: ${{ secrets.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Push to registry (on main branch only)
+        - name: push frontend
           if: github.ref == 'refs/heads/main'
-          run: |
-            docker tag meteo-front:vtest ${{ secrets.DOCKER_USERNAME }}/meteo-front:latest
-            docker push ${{ secrets.DOCKER_USERNAME }}/meteo-front:latest
+          run: docker push ${{ secrets.DOCKER_USERNAME }}/meteo-front:latest
 
