@@ -4,4 +4,8 @@ global:
 scrape_configs:
 - job_name: prometheus
   static_configs:
-  - targets: [ prometheus:9090, backend:8000 ]
+  - targets: [ prometheus:9090 ]
+
+- job_name: Back
+  static_configs:
+  - targets: [ backend:8000 ]
