@@ -11,8 +11,11 @@ COPY --from=ghcr.io/astral-sh/uv:0.10.0 /uv /uvx /bin/
 COPY . .
 RUN uv sync --locked
 
+COPY entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
-FROM dhi.io/python:3.12-alpine3.22
+
+FROM dhi.io/python:3.12-alpine3.22-dev
 
 WORKDIR /app
 
@@ -22,6 +25,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=build /app /app
 COPY --from=build /bin/uv /bin/uv
 COPY --from=build /bin/uvx /bin/uvx
+COPY --from=build /entrypoint.sh /entrypoint.sh
 
+ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 8000
-CMD ["uv", "run", "sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["uv", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
